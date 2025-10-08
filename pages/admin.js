@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 export default function Admin() {
   const [password, setPassword] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [activeTab, setActiveTab] = useState('orders');
+  const [activeTab, setActiveTab] = useState('products');
   
   // 管理状态
   const [products, setProducts] = useState([]);
@@ -16,18 +16,61 @@ export default function Admin() {
   // 新商品表单
   const [newProduct, setNewProduct] = useState({
     name: '',
-    price: '',
     description: '',
+    price: '',
+    image: '',
+    domestic: '0',
     stock: ''
   });
+
+  // 库存管理表单
+  const [stockForm, setStockForm] = useState({
+    productId: '',
+    country: '',
+    accountAge: '',
+    quantity: ''
+  });
+
+  // 发送账号信息模态框
+  const [showAccountModal, setShowAccountModal] = useState(false);
+  const [currentOrder, setCurrentOrder] = useState(null);
+  const [accountInfo, setAccountInfo] = useState({
+    username: '',
+    password: '',
+    contact: ''
+  });
+
+  // 国家列表
+  const countries = [
+    { code: 'US', name: '美国', flag: '🇺🇸' },
+    { code: 'GB', name: '英国', flag: '🇬🇧' },
+    { code: 'CA', name: '加拿大', flag: '🇨🇦' },
+    { code: 'AU', name: '澳大利亚', flag: '🇦🇺' },
+    { code: 'DE', name: '德国', flag: '🇩🇪' },
+    { code: 'FR', name: '法国', flag: '🇫🇷' },
+    { code: 'JP', name: '日本', flag: '🇯🇵' },
+    { code: 'KR', name: '韩国', flag: '🇰🇷' },
+    { code: 'SG', name: '新加坡', flag: '🇸🇬' },
+    { code: 'IN', name: '印度', flag: '🇮🇳' }
+  ];
+
+  // 账号年龄选项
+  const accountAges = [
+    { value: '15', name: '15天新号' },
+    { value: '30', name: '30天新号' },
+    { value: '60', name: '60天' },
+    { value: '180', name: '180天' },
+    { value: '365', name: '1年' },
+    { value: '1095', name: '3年老号' }
+  ];
 
   // 登录功能
   const handleLogin = (e) => {
     e.preventDefault();
     if (password === settings.adminPassword) {
       setIsAuthenticated(true);
-      // 加载商品数据
       loadProducts();
+      loadOrders();
     } else {
       alert('密码错误');
     }
@@ -35,24 +78,43 @@ export default function Admin() {
 
   // 加载商品数据
   const loadProducts = () => {
-    // 这里应该从API获取，暂时用模拟数据
-    const sampleProducts = [
-      {
-        id: 1,
-        name: "Telegram老号",
-        price: "10",
-        description: "注册超过1年的老号，稳定耐用",
-        stock: 50
-      },
-      {
-        id: 2, 
-        name: "Twitter蓝V号",
-        price: "25",
-        description: "已认证蓝V账号，立即使用",
-        stock: 20
-      }
-    ];
-    setProducts(sampleProducts);
+    // 从localStorage加载商品数据
+    const savedProducts = localStorage.getItem('store-products');
+    if (savedProducts) {
+      setProducts(JSON.parse(savedProducts));
+    } else {
+      // 默认商品数据
+      const defaultProducts = [
+        {
+          id: 1,
+          name: "Telegram老号",
+          price: "10",
+          description: "注册超过1年的老号，稳定耐用",
+          image: "",
+          domestic: "0",
+          stock: 50
+        },
+        {
+          id: 2, 
+          name: "微信账号",
+          price: "25",
+          description: "已实名认证微信账号",
+          image: "",
+          domestic: "1",
+          stock: 20
+        }
+      ];
+      setProducts(defaultProducts);
+      localStorage.setItem('store-products', JSON.stringify(defaultProducts));
+    }
+  };
+
+  // 加载订单数据
+  const loadOrders = () => {
+    const savedOrders = localStorage.getItem('store-orders');
+    if (savedOrders) {
+      setOrders(JSON.parse(savedOrders));
+    }
   };
 
   // 添加新商品
@@ -60,17 +122,47 @@ export default function Admin() {
     e.preventDefault();
     const product = {
       id: Date.now(),
-      ...newProduct
+      ...newProduct,
+      stock: parseInt(newProduct.stock)
     };
-    setProducts([...products, product]);
-    setNewProduct({ name: '', price: '', description: '', stock: '' });
+    const updatedProducts = [...products, product];
+    setProducts(updatedProducts);
+    localStorage.setItem('store-products', JSON.stringify(updatedProducts));
+    setNewProduct({ name: '', description: '', price: '', image: '', domestic: '0', stock: '' });
     alert('商品添加成功！');
   };
 
   // 删除商品
   const handleDeleteProduct = (productId) => {
     if (confirm('确定要删除这个商品吗？')) {
-      setProducts(products.filter(p => p.id !== productId));
+      const updatedProducts = products.filter(p => p.id !== productId);
+      setProducts(updatedProducts);
+      localStorage.setItem('store-products', JSON.stringify(updatedProducts));
+    }
+  };
+
+  // 更新库存
+  const handleUpdateStock = (e) => {
+    e.preventDefault();
+    // 这里可以添加库存更新逻辑
+    alert('库存更新功能已提交！在实际应用中，这里会更新数据库中的库存数据。');
+    setStockForm({ productId: '', country: '', accountAge: '', quantity: '' });
+  };
+
+  // 发送账号信息
+  const handleSendAccount = (e) => {
+    e.preventDefault();
+    if (currentOrder) {
+      const updatedOrders = orders.map(order => 
+        order.id === currentOrder.id 
+          ? { ...order, status: 'completed', accountInfo }
+          : order
+      );
+      setOrders(updatedOrders);
+      localStorage.setItem('store-orders', JSON.stringify(updatedOrders));
+      setShowAccountModal(false);
+      setAccountInfo({ username: '', password: '', contact: '' });
+      alert('账号信息已发送！');
     }
   };
 
@@ -78,7 +170,6 @@ export default function Admin() {
   const handleUpdateSettings = (e) => {
     e.preventDefault();
     alert('设置已更新！');
-    // 在实际应用中，这里应该调用API保存设置
   };
 
   if (!isAuthenticated) {
@@ -134,7 +225,7 @@ export default function Admin() {
   return (
     <div className="container">
       <header className="admin-header">
-        <h1>店铺管理后台</h1>
+        <h1>号商平台管理后台</h1>
         <button 
           onClick={() => setIsAuthenticated(false)}
           className="logout-btn"
@@ -145,16 +236,22 @@ export default function Admin() {
 
       <nav className="admin-nav">
         <button 
-          className={activeTab === 'orders' ? 'nav-btn active' : 'nav-btn'}
-          onClick={() => setActiveTab('orders')}
-        >
-          订单管理
-        </button>
-        <button 
           className={activeTab === 'products' ? 'nav-btn active' : 'nav-btn'}
           onClick={() => setActiveTab('products')}
         >
           商品管理
+        </button>
+        <button 
+          className={activeTab === 'stock' ? 'nav-btn active' : 'nav-btn'}
+          onClick={() => setActiveTab('stock')}
+        >
+          库存管理
+        </button>
+        <button 
+          className={activeTab === 'orders' ? 'nav-btn active' : 'nav-btn'}
+          onClick={() => setActiveTab('orders')}
+        >
+          订单管理
         </button>
         <button 
           className={activeTab === 'settings' ? 'nav-btn active' : 'nav-btn'}
@@ -165,40 +262,6 @@ export default function Admin() {
       </nav>
 
       <div className="admin-content">
-        {/* 订单管理 */}
-        {activeTab === 'orders' && (
-          <div className="tab-content">
-            <h2>订单管理</h2>
-            {orders.length === 0 ? (
-              <p>暂无订单</p>
-            ) : (
-              orders.map(order => (
-                <div key={order.id} className="order-item">
-                  <div className="order-info">
-                    <strong>订单 #{order.id}</strong>
-                    <p>商品: {order.productName}</p>
-                    <p>金额: {order.amount} USDT</p>
-                    <p>状态: 
-                      <span className={`status ${order.status}`}>
-                        {order.status === 'pending' ? '待处理' : '已发货'}
-                      </span>
-                    </p>
-                    <p>交易哈希: {order.txHash}</p>
-                  </div>
-                  {order.status === 'pending' && (
-                    <button 
-                      onClick={() => {/* 标记发货逻辑 */}}
-                      className="ship-btn"
-                    >
-                      标记为已发货
-                    </button>
-                  )}
-                </div>
-              ))
-            )}
-          </div>
-        )}
-
         {/* 商品管理 */}
         {activeTab === 'products' && (
           <div className="tab-content">
@@ -229,6 +292,21 @@ export default function Admin() {
                 onChange={(e) => setNewProduct({...newProduct, description: e.target.value})}
                 required
               />
+              <div className="form-group">
+                <input
+                  type="text"
+                  placeholder="图片URL"
+                  value={newProduct.image}
+                  onChange={(e) => setNewProduct({...newProduct, image: e.target.value})}
+                />
+                <select
+                  value={newProduct.domestic}
+                  onChange={(e) => setNewProduct({...newProduct, domestic: e.target.value})}
+                >
+                  <option value="0">国际软件</option>
+                  <option value="1">国内软件</option>
+                </select>
+              </div>
               <input
                 type="number"
                 placeholder="库存数量"
@@ -236,7 +314,7 @@ export default function Admin() {
                 onChange={(e) => setNewProduct({...newProduct, stock: e.target.value})}
                 required
               />
-              <button type="submit" className="add-btn">添加商品</button>
+              <button type="submit" className="add-btn">上架商品</button>
             </form>
 
             {/* 商品列表 */}
@@ -250,6 +328,7 @@ export default function Admin() {
                     <div className="product-meta">
                       <span>价格: {product.price} USDT</span>
                       <span>库存: {product.stock}</span>
+                      <span>类型: {product.domestic === '1' ? '国内软件' : '国际软件'}</span>
                     </div>
                   </div>
                   <button 
@@ -261,6 +340,130 @@ export default function Admin() {
                 </div>
               ))}
             </div>
+          </div>
+        )}
+
+        {/* 库存管理 */}
+        {activeTab === 'stock' && (
+          <div className="tab-content">
+            <h2>库存管理</h2>
+            
+            <form onSubmit={handleUpdateStock} className="stock-form">
+              <div className="form-group">
+                <label>选择商品:</label>
+                <select
+                  value={stockForm.productId}
+                  onChange={(e) => setStockForm({...stockForm, productId: e.target.value})}
+                  required
+                >
+                  <option value="">-- 请选择商品 --</option>
+                  {products.map(product => (
+                    <option key={product.id} value={product.id}>
+                      {product.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label>国家 (仅国际软件):</label>
+                <select
+                  value={stockForm.country}
+                  onChange={(e) => setStockForm({...stockForm, country: e.target.value})}
+                >
+                  <option value="">-- 请选择国家 --</option>
+                  {countries.map(country => (
+                    <option key={country.code} value={country.code}>
+                      {country.flag} {country.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label>账号年龄:</label>
+                <select
+                  value={stockForm.accountAge}
+                  onChange={(e) => setStockForm({...stockForm, accountAge: e.target.value})}
+                  required
+                >
+                  <option value="">-- 请选择账号年龄 --</option>
+                  {accountAges.map(age => (
+                    <option key={age.value} value={age.value}>
+                      {age.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label>库存数量:</label>
+                <input
+                  type="number"
+                  value={stockForm.quantity}
+                  onChange={(e) => setStockForm({...stockForm, quantity: e.target.value})}
+                  min="0"
+                  required
+                />
+              </div>
+
+              <button type="submit" className="submit-btn">更新库存</button>
+            </form>
+          </div>
+        )}
+
+        {/* 订单管理 */}
+        {activeTab === 'orders' && (
+          <div className="tab-content">
+            <h2>订单管理</h2>
+            
+            <table className="orders-table">
+              <thead>
+                <tr>
+                  <th>订单号</th>
+                  <th>商品名称</th>
+                  <th>联系方式</th>
+                  <th>数量</th>
+                  <th>总价</th>
+                  <th>状态</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                {orders.length === 0 ? (
+                  <tr>
+                    <td colSpan="7" style={{textAlign: 'center'}}>暂无订单</td>
+                  </tr>
+                ) : (
+                  orders.map(order => (
+                    <tr key={order.id}>
+                      <td>#{order.id}</td>
+                      <td>{order.productName}</td>
+                      <td>{order.contactInfo || 'N/A'}</td>
+                      <td>{order.quantity}</td>
+                      <td>{order.amount} USDT</td>
+                      <td className={`status-${order.status}`}>
+                        {order.status === 'pending' ? '待处理' : 
+                         order.status === 'completed' ? '已完成' : '已取消'}
+                      </td>
+                      <td>
+                        {order.status === 'pending' && (
+                          <button 
+                            className="action-btn"
+                            onClick={() => {
+                              setCurrentOrder(order);
+                              setShowAccountModal(true);
+                            }}
+                          >
+                            发送账号
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
           </div>
         )}
 
@@ -292,33 +495,76 @@ export default function Admin() {
 
               <button type="submit" className="save-btn">保存设置</button>
             </form>
-
-            <div className="settings-info">
-              <h3>使用说明</h3>
-              <ul>
-                <li>修改密码后请妥善保管新密码</li>
-                <li>USDT地址修改后立即生效</li>
-                <li>添加商品后会在前台立即显示</li>
-              </ul>
-            </div>
           </div>
         )}
       </div>
 
+      {/* 发送账号信息模态框 */}
+      {showAccountModal && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h3>发送账号信息</h3>
+              <button 
+                className="close-modal"
+                onClick={() => setShowAccountModal(false)}
+              >
+                &times;
+              </button>
+            </div>
+            <form onSubmit={handleSendAccount}>
+              <div className="form-group">
+                <label>用户名:</label>
+                <input
+                  type="text"
+                  value={accountInfo.username}
+                  onChange={(e) => setAccountInfo({...accountInfo, username: e.target.value})}
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label>密码:</label>
+                <input
+                  type="text"
+                  value={accountInfo.password}
+                  onChange={(e) => setAccountInfo({...accountInfo, password: e.target.value})}
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label>您的联系方式:</label>
+                <input
+                  type="text"
+                  value={accountInfo.contact}
+                  onChange={(e) => setAccountInfo({...accountInfo, contact: e.target.value})}
+                  required
+                />
+              </div>
+              <button type="submit" className="submit-btn">发送账号信息</button>
+            </form>
+          </div>
+        </div>
+      )}
+
       <style jsx>{`
         .container {
-          max-width: 1000px;
+          max-width: 1200px;
           margin: 0 auto;
           padding: 20px;
+          background: #1a1a2e;
+          color: #f8f9fa;
+          min-height: 100vh;
         }
         .admin-header {
           display: flex;
           justify-content: space-between;
           align-items: center;
           margin-bottom: 30px;
+          padding-bottom: 15px;
+          border-bottom: 2px solid #2a9d8f;
         }
         .logout-btn {
-          background: #ef4444;
+          background: #e76f51;
           color: white;
           border: none;
           padding: 10px 20px;
@@ -329,7 +575,7 @@ export default function Admin() {
           display: flex;
           gap: 10px;
           margin-bottom: 30px;
-          border-bottom: 1px solid #e5e7eb;
+          border-bottom: 1px solid #4a5079;
         }
         .nav-btn {
           padding: 12px 24px;
@@ -337,47 +583,45 @@ export default function Admin() {
           background: none;
           cursor: pointer;
           border-bottom: 2px solid transparent;
+          color: #b0b0b0;
         }
         .nav-btn.active {
-          border-bottom-color: #3b82f6;
-          color: #3b82f6;
+          border-bottom-color: #2a9d8f;
+          color: #2a9d8f;
         }
         .tab-content {
-          background: white;
+          background: #2d3047;
           padding: 30px;
           border-radius: 12px;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+          box-shadow: 0 2px 8px rgba(0,0,0,0.3);
         }
-        .order-item, .product-item {
-          border: 1px solid #e5e7eb;
-          border-radius: 8px;
-          padding: 20px;
-          margin: 10px 0;
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-        }
-        .product-form, .settings-form {
-          background: #f8f9fa;
+        .product-form, .stock-form, .settings-form {
+          background: #3a3e5b;
           padding: 20px;
           border-radius: 8px;
           margin-bottom: 30px;
         }
         .form-group {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 10px;
-          margin-bottom: 10px;
+          margin-bottom: 15px;
         }
-        input, textarea {
+        .form-group label {
+          display: block;
+          margin-bottom: 5px;
+          color: #b0b0b0;
+        }
+        input, textarea, select {
           width: 100%;
           padding: 10px;
-          margin: 5px 0;
-          border: 1px solid #d1d5db;
-          border-radius: 6px;
+          background: #2d3047;
+          border: 1px solid #4a5079;
+          border-radius: 4px;
+          color: white;
         }
-        .add-btn, .save-btn {
-          background: #10b981;
+        .form-group input, .form-group select {
+          margin-bottom: 10px;
+        }
+        .add-btn, .submit-btn, .save-btn {
+          background: #2a9d8f;
           color: white;
           border: none;
           padding: 12px 24px;
@@ -385,35 +629,96 @@ export default function Admin() {
           cursor: pointer;
           margin-top: 10px;
         }
+        .products-list {
+          margin-top: 30px;
+        }
+        .product-item {
+          border: 1px solid #4a5079;
+          border-radius: 8px;
+          padding: 20px;
+          margin: 10px 0;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+        .product-details h4 {
+          margin: 0 0 5px 0;
+          color: #e9c46a;
+        }
+        .product-meta {
+          display: flex;
+          gap: 20px;
+          margin-top: 10px;
+          color: #b0b0b0;
+        }
         .delete-btn {
-          background: #ef4444;
+          background: #e76f51;
           color: white;
           border: none;
           padding: 8px 16px;
           border-radius: 6px;
           cursor: pointer;
         }
-        .product-details h4 {
-          margin: 0 0 5px 0;
+        .orders-table {
+          width: 100%;
+          border-collapse: collapse;
         }
-        .product-meta {
+        .orders-table th, .orders-table td {
+          padding: 12px;
+          text-align: left;
+          border-bottom: 1px solid #4a5079;
+        }
+        .orders-table th {
+          background: #3a3e5b;
+          color: #e9c46a;
+        }
+        .status-pending {
+          color: #e9c46a;
+        }
+        .status-completed {
+          color: #2a9d8f;
+        }
+        .action-btn {
+          background: #2a9d8f;
+          color: white;
+          border: none;
+          padding: 6px 12px;
+          border-radius: 4px;
+          cursor: pointer;
+        }
+        .modal-overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: rgba(0,0,0,0.7);
           display: flex;
-          gap: 20px;
-          margin-top: 10px;
+          justify-content: center;
+          align-items: center;
+          z-index: 1000;
         }
-        .setting-group {
+        .modal-content {
+          background: #2d3047;
+          padding: 30px;
+          border-radius: 12px;
+          width: 90%;
+          max-width: 500px;
+        }
+        .modal-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
           margin-bottom: 20px;
+          padding-bottom: 15px;
+          border-bottom: 1px solid #4a5079;
         }
-        .setting-group label {
-          display: block;
-          margin-bottom: 5px;
-          font-weight: bold;
-        }
-        .settings-info {
-          background: #dbeafe;
-          padding: 20px;
-          border-radius: 8px;
-          margin-top: 30px;
+        .close-modal {
+          background: none;
+          border: none;
+          color: white;
+          font-size: 24px;
+          cursor: pointer;
         }
       `}</style>
     </div>
