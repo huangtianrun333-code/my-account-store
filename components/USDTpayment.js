@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import QRCode from 'qrcode.react';
+import { QRCodeSVG } from 'qrcode.react';
 
-export default function USDTpayment({ order, usdtAddress = 'TY...你的USDT地址...' }) {
-  // 移除原来的 usdtAddress 常量
+export default function USDTpayment({ order }) {
+  // ⭐️ 在这里填写你的USDT收款地址（TRC20网络）
+  const usdtAddress = 'TY...你的USDT地址...';
   
   const [txHash, setTxHash] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -40,7 +41,7 @@ export default function USDTpayment({ order, usdtAddress = 'TY...你的USDT地�
         </div>
 
         <div className="qrcode-container">
-          <QRCode 
+          <QRCodeSVG 
             value={`ethereum:${usdtAddress}?amount=${order.amount}`}
             size={200}
           />
