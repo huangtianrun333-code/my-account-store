@@ -1,39 +1,11 @@
 import { useState } from 'react';
 
-// 使用动态导入避免版本兼容性问题
-let QRComponent = null;
-
 export default function USDTpayment({ order }) {
   // ⭐️ 在这里填写你的USDT收款地址（TRC20网络）
   const usdtAddress = 'TY...你的USDT地址...';
   
   const [txHash, setTxHash] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [qrCode, setQrCode] = useState(null);
-
-  // 动态加载二维码组件
-  const loadQRCode = async () => {
-    if (!QRComponent) {
-      try {
-        // 尝试导入新版本的组件
-        const module = await import('qrcode.react');
-        QRComponent = module.QRCodeSVG || module.default;
-      } catch (error) {
-        console.error('加载二维码组件失败:', error);
-        return null;
-      }
-    }
-    return QRComponent;
-  };
-
-  // 在组件挂载时加载二维码
-  useState(() => {
-    loadQRCode().then(Component => {
-      if (Component) {
-        setQrCode(Component);
-      }
-    });
-  });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -67,25 +39,15 @@ export default function USDTpayment({ order }) {
           </button>
         </div>
 
-        <div className="qrcode-container">
-          {qrCode ? (
-            React.createElement(qrCode, {
-              value: `ethereum:${usdtAddress}?amount=${order.amount}`,
-              size: 200
-            })
-          ) : (
-            <div style={{ 
-              width: 200, 
-              height: 200, 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'center',
-              border: '1px dashed #ccc'
-            }}>
-              加载二维码中...
-            </div>
-          )}
-          <p>扫描二维码支付</p>
+        <div className="manual-payment-instructions">
+          <h3>支付说明：</h3>
+          <ol>
+            <li>复制上面的 USDT 收款地址</li>
+            <li>打开您的加密货币钱包（如 Trust Wallet、MetaMask 等）</li>
+            <li>选择 USDT（TRC20 网络）进行转账</li>
+            <li>粘贴收款地址并输入金额 <strong>{order.amount} USDT</strong></li>
+            <li>完成支付后在下方提交交易哈希</li>
+          </ol>
         </div>
 
         {!isSubmitted ? (
@@ -132,6 +94,7 @@ export default function USDTpayment({ order }) {
           font-family: monospace;
           word-break: break-all;
           margin: 10px 0;
+          font-size: 14px;
         }
         .copy-btn {
           background: #6b7280;
@@ -141,12 +104,23 @@ export default function USDTpayment({ order }) {
           border-radius: 6px;
           cursor: pointer;
         }
-        .qrcode-container {
-          text-align: center;
-          margin: 20px 0;
+        .manual-payment-instructions {
+          background: #f0f9ff;
           padding: 20px;
-          border: 2px dashed #d1d5db;
           border-radius: 8px;
+          margin: 20px 0;
+          border-left: 4px solid #3b82f6;
+        }
+        .manual-payment-instructions h3 {
+          margin-top: 0;
+          color: #1e40af;
+        }
+        .manual-payment-instructions ol {
+          margin: 10px 0;
+          padding-left: 20px;
+        }
+        .manual-payment-instructions li {
+          margin-bottom: 8px;
         }
         .tx-form {
           margin-top: 20px;
