@@ -1,4 +1,4 @@
-import clientPromise from '../../../lib/mongodb';
+import clientPromise from '../../lib/mongodb';
 
 export default async function handler(req, res) {
   try {
@@ -8,13 +8,11 @@ export default async function handler(req, res) {
 
     switch (req.method) {
       case 'GET':
-        // 获取所有商品
         const products = await productsCollection.find({}).toArray();
         res.status(200).json(products);
         break;
 
       case 'POST':
-        // 添加新商品
         const product = {
           ...req.body,
           createdAt: new Date(),
@@ -27,25 +25,8 @@ export default async function handler(req, res) {
         });
         break;
 
-      case 'PUT':
-        // 更新商品
-        const { id, ...updateData } = req.body;
-        await productsCollection.updateOne(
-          { _id: new ObjectId(id) },
-          { $set: { ...updateData, updatedAt: new Date() } }
-        );
-        res.status(200).json({ success: true });
-        break;
-
-      case 'DELETE':
-        // 删除商品
-        const { productId } = req.body;
-        await productsCollection.deleteOne({ _id: new ObjectId(productId) });
-        res.status(200).json({ success: true });
-        break;
-
       default:
-        res.setHeader('Allow', ['GET', 'POST', 'PUT', 'DELETE']);
+        res.setHeader('Allow', ['GET', 'POST']);
         res.status(405).end(`方法 ${req.method} 不被允许`);
     }
   } catch (error) {

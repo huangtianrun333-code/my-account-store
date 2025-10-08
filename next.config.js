@@ -12,11 +12,8 @@ const nextConfig = {
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
   },
-  // 环境变量
-  env: {
-    CUSTOM_KEY: process.env.CUSTOM_KEY,
-  },
-  // 启用 SWC 最小化
+  // 移除有问题的 env 配置
+  // swc 最小化
   swcMinify: true,
 }
 

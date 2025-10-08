@@ -1,5 +1,4 @@
-import clientPromise from '../../../lib/mongodb';
-import { ObjectId } from 'mongodb';
+import clientPromise from '../../lib/mongodb';
 
 export default async function handler(req, res) {
   try {
@@ -9,15 +8,11 @@ export default async function handler(req, res) {
 
     switch (req.method) {
       case 'GET':
-        // 获取所有订单
-        const orders = await ordersCollection.find({})
-          .sort({ createdAt: -1 })
-          .toArray();
+        const orders = await ordersCollection.find({}).toArray();
         res.status(200).json(orders);
         break;
 
       case 'POST':
-        // 创建新订单
         const order = {
           ...req.body,
           status: 'pending',
@@ -31,18 +26,8 @@ export default async function handler(req, res) {
         });
         break;
 
-      case 'PUT':
-        // 更新订单状态
-        const { orderId, ...updateData } = req.body;
-        await ordersCollection.updateOne(
-          { _id: new ObjectId(orderId) },
-          { $set: { ...updateData, updatedAt: new Date() } }
-        );
-        res.status(200).json({ success: true });
-        break;
-
       default:
-        res.setHeader('Allow', ['GET', 'POST', 'PUT']);
+        res.setHeader('Allow', ['GET', 'POST']);
         res.status(405).end(`方法 ${req.method} 不被允许`);
     }
   } catch (error) {

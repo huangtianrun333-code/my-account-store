@@ -1,14 +1,26 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function USDTpayment({ order }) {
   const usdtAddress = 'TY...你的USDT地址...';
   const [txHash, setTxHash] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [canCopy, setCanCopy] = useState(false);
+
+  useEffect(() => {
+    setCanCopy(!!navigator.clipboard);
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     console.log('提交交易哈希:', txHash);
     setIsSubmitted(true);
+  };
+
+  const handleCopy = async () => {
+    if (canCopy) {
+      await navigator.clipboard.writeText(usdtAddress);
+      alert('地址已复制!');
+    }
   };
 
   return (
@@ -22,7 +34,7 @@ export default function USDTpayment({ order }) {
           <strong>收款地址 (TRC20):</strong>
           <div className="address">{usdtAddress}</div>
           <button 
-            onClick={() => navigator.clipboard.writeText(usdtAddress)}
+            onClick={handleCopy}
             className="copy-btn"
           >
             复制地址

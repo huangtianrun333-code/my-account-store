@@ -1,4 +1,4 @@
-import clientPromise from '../../../lib/mongodb';
+import clientPromise from '../../lib/mongodb';
 
 export default async function handler(req, res) {
   try {
@@ -8,10 +8,8 @@ export default async function handler(req, res) {
 
     switch (req.method) {
       case 'GET':
-        // 获取设置
         let settings = await settingsCollection.findOne({ type: 'store_settings' });
         if (!settings) {
-          // 默认设置
           settings = {
             type: 'store_settings',
             adminPassword: 'admin123',
@@ -24,7 +22,6 @@ export default async function handler(req, res) {
         break;
 
       case 'PUT':
-        // 更新设置
         await settingsCollection.updateOne(
           { type: 'store_settings' },
           { $set: { ...req.body, updatedAt: new Date() } },
