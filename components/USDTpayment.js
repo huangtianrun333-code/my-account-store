@@ -1,24 +1,14 @@
 import { useState } from 'react';
 
 export default function USDTpayment({ order }) {
-  // ⭐️ 在这里填写你的USDT收款地址（TRC20网络）
   const usdtAddress = 'TY...你的USDT地址...';
-  
   const [txHash, setTxHash] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    // 这里可以添加提交到API的逻辑
     console.log('提交交易哈希:', txHash);
     setIsSubmitted(true);
-    
-    // 在实际应用中，这里应该调用API保存交易哈希
-    // await fetch('/api/orders', {
-    //   method: 'POST',
-    //   body: JSON.stringify({ orderId: order.id, txHash })
-    // });
   };
 
   return (
@@ -39,14 +29,14 @@ export default function USDTpayment({ order }) {
           </button>
         </div>
 
-        <div className="manual-payment-instructions">
-          <h3>支付说明：</h3>
+        <div className="manual-instructions">
+          <h4>支付步骤：</h4>
           <ol>
-            <li>复制上面的 USDT 收款地址</li>
-            <li>打开您的加密货币钱包（如 Trust Wallet、MetaMask 等）</li>
-            <li>选择 USDT（TRC20 网络）进行转账</li>
-            <li>粘贴收款地址并输入金额 <strong>{order.amount} USDT</strong></li>
-            <li>完成支付后在下方提交交易哈希</li>
+            <li>复制上面的 USDT 地址</li>
+            <li>打开您的加密货币钱包</li>
+            <li>选择 USDT (TRC20 网络)</li>
+            <li>粘贴地址并转账 {order.amount} USDT</li>
+            <li>在下方提交交易哈希</li>
           </ol>
         </div>
 
@@ -70,8 +60,6 @@ export default function USDTpayment({ order }) {
         ) : (
           <div className="success-message">
             ✅ 已收到你的交易凭证！我们会在区块链上确认后立即发货。
-            <br />
-            <small>请保持Telegram联系渠道畅通</small>
           </div>
         )}
       </div>
@@ -104,23 +92,18 @@ export default function USDTpayment({ order }) {
           border-radius: 6px;
           cursor: pointer;
         }
-        .manual-payment-instructions {
+        .manual-instructions {
           background: #f0f9ff;
-          padding: 20px;
+          padding: 15px;
           border-radius: 8px;
           margin: 20px 0;
-          border-left: 4px solid #3b82f6;
         }
-        .manual-payment-instructions h3 {
-          margin-top: 0;
-          color: #1e40af;
-        }
-        .manual-payment-instructions ol {
+        .manual-instructions ol {
           margin: 10px 0;
           padding-left: 20px;
         }
-        .manual-payment-instructions li {
-          margin-bottom: 8px;
+        .manual-instructions li {
+          margin-bottom: 5px;
         }
         .tx-form {
           margin-top: 20px;
