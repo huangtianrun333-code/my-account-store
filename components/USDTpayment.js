@@ -1,5 +1,7 @@
 import { useState } from 'react';
-import { QRCodeSVG } from 'qrcode.react';
+
+// 使用动态导入避免版本兼容性问题
+let QRComponent = null;
 
 export default function USDTpayment({ order }) {
   // ⭐️ 在这里填写你的USDT收款地址（TRC20网络）
@@ -7,6 +9,31 @@ export default function USDTpayment({ order }) {
   
   const [txHash, setTxHash] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [qrCode, setQrCode] = useState(null);
+
+  // 动态加载二维码组件
+  const loadQRCode = async () => {
+    if (!QRComponent) {
+      try {
+        // 尝试导入新版本的组件
+        const module = await import('qrcode.react');
+        QRComponent = module.QRCodeSVG || module.default;
+      } catch (error) {
+        console.error('加载二维码组件失败:', error);
+        return null;
+      }
+    }
+    return QRComponent;
+  };
+
+  // 在组件挂载时加载二维码
+  useState(() => {
+    loadQRCode().then(Component => {
+      if (Component) {
+        setQrCode(Component);
+      }
+    });
+  });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -41,10 +68,23 @@ export default function USDTpayment({ order }) {
         </div>
 
         <div className="qrcode-container">
-          <QRCodeSVG 
-            value={`ethereum:${usdtAddress}?amount=${order.amount}`}
-            size={200}
-          />
+          {qrCode ? (
+            React.createElement(qrCode, {
+              value: `ethereum:${usdtAddress}?amount=${order.amount}`,
+              size: 200
+            })
+          ) : (
+            <div style={{ 
+              width: 200, 
+              height: 200, 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              border: '1px dashed #ccc'
+            }}>
+              加载二维码中...
+            </div>
+          )}
           <p>扫描二维码支付</p>
         </div>
 
